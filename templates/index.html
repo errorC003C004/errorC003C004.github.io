@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Charts Test</title>
+    <style>
+    :root {
+        --bg-main: #101722;
+        --bg-panel: #18222d;
+        --bg-panel-2: #141d27;
+        --bg-panel-3: #101820;
+
+        --text-main: #ffffff;
+        --text-muted: #9aa7b7;
+        --text-soft: #c5d4e3;
+
+        --accent: #66c0f4;
+        --accent-hover: #8bd3ff;
+
+        --button-dark: #2a3644;
+        --button-dark-hover: #38495d;
+
+        --border-light: rgba(255, 255, 255, 0.04);
+        --border-mid: rgba(255, 255, 255, 0.05);
+        --shadow-main: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.25);
+        --shadow-hover: 0 0.75rem 1.625rem rgba(0, 0, 0, 0.33);
+
+        --radius-lg: 1.125rem;
+        --radius-md: 0.875rem;
+        --radius-sm: 0.625rem;
+
+        --page-width: 93.75rem;
+        --search-width: 47.5rem;
+
+        --font-main: Arial, Helvetica, sans-serif;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html {
+        font-size: 16px;
+    }
+
+    body {
+        margin: 0;
+        font-family: var(--font-main);
+        background: var(--bg-main);
+        color: var(--text-main);
+    }
+
+    /* PAGE */
+    .page {
+        max-width: var(--page-width);
+        margin: 0 auto;
+        padding: 1.75rem 1.25rem 2.5rem;
+        text-align: center;
+    }
+
+    h1 {
+        margin: 0 0 0.875rem;
+        font-size: 2.375rem;
+        font-weight: 700;
+        line-height: 1.15;
+    }
+
+    .subtext {
+        color: var(--text-muted);
+        margin-bottom: 1.125rem;
+        font-size: 0.95rem;
+    }
+
+    /* SEARCH */
+    .search-wrap {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 0.625rem;
+        position: relative;
+    }
+
+    .search-box {
+        position: relative;
+        width: 100%;
+        max-width: var(--search-width);
+    }
+
+    .search {
+        width: 100%;
+        padding: 0.875rem 2.75rem 0.875rem 1rem;
+        border: 1px solid #304254;
+        outline: none;
+        border-radius: 0.25rem;
+        font-size: 0.95rem;
+        background: linear-gradient(180deg, #30465f 0%, #1b2838 100%);
+        color: var(--text-main);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .search:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 0.125rem rgba(102, 192, 244, 0.18);
+    }
+
+    .search::placeholder {
+        color: #b9c6d3;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 0.875rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #c7d5e0;
+        pointer-events: none;
+        font-size: 1rem;
+    }
+
+    /* SUGGESTIONS */
+    .suggestions {
+        position: absolute;
+        top: calc(100% + 0.375rem);
+        left: 0;
+        right: 0;
+        background: #16202d;
+        border: 1px solid #2e4153;
+        border-radius: 0.375rem;
+        overflow: hidden;
+        z-index: 50;
+        box-shadow: 0 0.625rem 1.875rem rgba(0, 0, 0, 0.35);
+        display: none;
+        max-height: 26.25rem;
+        overflow-y: auto;
+        text-align: left;
+    }
+
+    .suggestions.show {
+        display: block;
+    }
+
+    .suggestion {
+        display: grid;
+        grid-template-columns: 5.75rem 1fr auto;
+        gap: 0.75rem;
+        align-items: center;
+        padding: 0.625rem 0.75rem;
+        background: #1b2838;
+        cursor: pointer;
+    }
+
+    .suggestion:hover,
+    .suggestion.active {
+        background: linear-gradient(90deg, #1f3a52 0%, #23425c 100%);
+    }
+
+    .suggestion img {
+        width: 5.75rem;
+        height: 2.6875rem;
+        object-fit: cover;
+        border-radius: 0.25rem;
+    }
+
+    .suggestion-name {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .suggestion-id {
+        font-size: 0.75rem;
+        color: #9fb4c8;
+    }
+
+    .suggestion-open {
+        color: var(--accent);
+        font-size: 0.8125rem;
+        white-space: nowrap;
+    }
+
+    /* STATUS / ERROR */
+    .status {
+        min-height: 1.5rem;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .error {
+        max-width: 47.5rem;
+        margin: 0 auto 1.5625rem;
+        background: #6c2020;
+        padding: 0.875rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.95rem;
+    }
+
+    .empty {
+        color: var(--text-muted);
+        padding: 1.875rem 0;
+        font-size: 0.95rem;
+    }
+
+    /* GRID */
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(16.25rem, 1fr));
+        gap: 1.375rem;
+        align-items: stretch;
+    }
+
+    /* OUTER BUBBLE */
+    .bubble {
+        background: linear-gradient(180deg, #1c2733 0%, var(--bg-panel) 100%);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 1.125rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        text-align: center;
+        box-shadow: var(--shadow-main);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .bubble:hover {
+        transform: translateY(-0.1875rem);
+        box-shadow: var(--shadow-hover);
+    }
+
+    /* BANNER */
+    .banner {
+        width: 100%;
+        aspect-ratio: 460 / 215;
+        object-fit: cover;
+        border-radius: var(--radius-md);
+        background: #0d141b;
+        margin-bottom: 0.875rem;
+    }
+
+    /* NAME */
+    .game-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.875rem;
+        word-break: break-word;
+        line-height: 1.25;
+    }
+
+    /* INNER BUBBLE */
+    .inner-bubble {
+        width: 100%;
+        background: linear-gradient(180deg, var(--bg-panel-2) 0%, var(--bg-panel-3) 100%);
+        border: 1px solid var(--border-mid);
+        border-radius: var(--radius-md);
+        padding: 0.875rem;
+        margin-top: auto;
+    }
+
+    /* BOTTOM ROW */
+    .bottom-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    /* LEFT SIDE ID */
+    .game-id {
+        color: var(--text-soft);
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: left;
+        flex: 1;
+        min-width: 7.5rem;
+        line-height: 1.3;
+    }
+
+    /* RIGHT SIDE BUTTONS */
+    .button-group {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.625rem;
+    }
+
+    /* BUTTONS */
+    .btn {
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 0.625rem 0.75rem;
+        cursor: pointer;
+        font-size: 0.95rem;
+        min-width: 2.875rem;
+        min-height: 2.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-0.0625rem);
+    }
+
+    .download-btn {
+        background: var(--accent);
+        color: #101820;
+        font-weight: 700;
+    }
+
+    .download-btn:hover {
+        background: var(--accent-hover);
+    }
+
+    .copy-btn {
+        background: var(--button-dark);
+        color: var(--text-main);
+    }
+
+    .copy-btn:hover {
+        background: var(--button-dark-hover);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 75rem) {
+        .grid {
+            grid-template-columns: repeat(3, minmax(15rem, 1fr));
+        }
+    }
+
+    @media (max-width: 56.25rem) {
+        .grid {
+            grid-template-columns: repeat(2, minmax(13.75rem, 1fr));
+        }
+
+        h1 {
+            font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 35rem) {
+        .grid {
+            grid-template-columns: 1fr;
+        }
+
+        h1 {
+            font-size: 1.875rem;
+        }
+
+        .suggestion {
+            grid-template-columns: 4.5rem 1fr;
+        }
+
+        .suggestion-open {
+            display: none;
+        }
+
+        .suggestion img {
+            width: 4.5rem;
+            height: 2.125rem;
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <h1>Game Charts Test</h1>
+        <div class="subtext">Search by game name or Steam app ID</div>
+
+        <div class="search-wrap">
+            <div class="search-box">
+                <input
+                    id="searchInput"
+                    class="search"
+                    type="text"
+                    placeholder="Search Steam games by name or ID"
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+                <div class="search-icon">🔎</div>
+                <div id="suggestions" class="suggestions"></div>
+            </div>
+        </div>
+
+        {% if error %}
+            <div class="error">Error: {{ error }}</div>
+        {% endif %}
+
+        <div class="status" id="statusText">Showing top games</div>
+
+        <div class="grid" id="gameGrid">
+            {% for game in games %}
+                <div class="bubble">
+                    <img
+                        class="banner"
+                        src="{{ game.banner_url }}"
+                        alt="{{ game.name }} banner"
+                        loading="lazy"
+                        onerror="this.src='https://placehold.co/460x215/18222d/ffffff?text=No+Banner';"
+                    >
+
+                    <div class="game-name">{{ game.name }}</div>
+
+                    <div class="inner-bubble">
+                        <div class="bottom-row">
+                            <div class="game-id">ID: {{ game.app_id }}</div>
+
+                            <div class="button-group">
+                                <a class="btn download-btn" href="{{ game.store_url }}" target="_blank" title="Open Steam Store">⬇</a>
+                                <button class="btn copy-btn" onclick="copyId('{{ game.app_id }}')" title="Copy App ID">📋</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById("searchInput");
+        const gameGrid = document.getElementById("gameGrid");
+        const statusText = document.getElementById("statusText");
+        const suggestions = document.getElementById("suggestions");
+
+        let searchDebounce = null;
+        let suggestionDebounce = null;
+        let activeSuggestionIndex = -1;
+        let currentSuggestions = [];
+
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text ?? "";
+            return div.innerHTML;
+        }
+
+        function makeCard(game) {
+            return `
+                <div class="bubble">
+                    <img class="banner" src="${escapeHtml(game.banner_url)}" alt="${escapeHtml(game.name)} banner" loading="lazy" onerror="this.src='https://placehold.co/460x215/18222d/ffffff?text=No+Banner';" >
+                    <div class="game-name">${escapeHtml(game.name)}</div>
+                    <div class="inner-bubble">
+                        <div class="bottom-row">
+                            <div class="game-id">ID: ${escapeHtml(String(game.app_id))}</div>
+                            <div class="button-group">
+                                <a class="btn download-btn" href="${escapeHtml(game.store_url)}" target="_blank" title="Open Steam Store">⬇</a>
+                                <button class="btn copy-btn" onclick="copyId('${escapeHtml(String(game.app_id))}')" title="Copy App ID">📋</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showSuggestions(items) {
+            currentSuggestions = items;
+            activeSuggestionIndex = -1;
+
+            if (!items.length) {
+                suggestions.innerHTML = "";
+                suggestions.classList.remove("show");
+                return;
+            }
+
+            suggestions.innerHTML = items.map((game, index) => `
+                <div class="suggestion" data-index="${index}">
+                    <img
+                        src="${escapeHtml(game.banner_url)}"
+                        alt="${escapeHtml(game.name)}"
+                        onerror="this.src='https://placehold.co/184x86/1b2838/ffffff?text=No+Banner';"
+                    >
+                    <div>
+                        <div class="suggestion-name">${escapeHtml(game.name)}</div>
+                        <div class="suggestion-id">ID: ${escapeHtml(String(game.app_id))}</div>
+                    </div>
+                    <div class="suggestion-open">Open</div>
+                </div>
+            `).join("");
+
+            suggestions.classList.add("show");
+
+            suggestions.querySelectorAll(".suggestion").forEach(el => {
+                el.addEventListener("mousedown", (e) => {
+                    e.preventDefault();
+                    const idx = Number(el.dataset.index);
+                    selectSuggestion(idx);
+                });
+            });
+        }
+
+        function highlightSuggestion() {
+            const rows = suggestions.querySelectorAll(".suggestion");
+            rows.forEach((row, i) => {
+                row.classList.toggle("active", i === activeSuggestionIndex);
+            });
+        }
+
+        async function loadTopGames() {
+            const response = await fetch("/top-games");
+            const data = await response.json();
+            gameGrid.innerHTML = data.games.map(makeCard).join("");
+            statusText.textContent = "Showing top games";
+        }
+
+        async function runSearch() {
+            const q = searchInput.value.trim();
+
+            if (!q) {
+                suggestions.classList.remove("show");
+                suggestions.innerHTML = "";
+                await loadTopGames();
+                return;
+            }
+
+            statusText.textContent = "Searching...";
+            try {
+                const response = await fetch("/search?q=" + encodeURIComponent(q));
+                const data = await response.json();
+
+                gameGrid.innerHTML = data.games.map(makeCard).join("");
+                statusText.textContent = `Found ${data.count} result(s) for "${q}"`;
+
+                if (!data.games.length) {
+                    gameGrid.innerHTML = `<div class="empty">No results found.</div>`;
+                }
+            } catch (e) {
+                statusText.textContent = "Search failed";
+            }
+        }
+
+        async function runSuggestions() {
+            const q = searchInput.value.trim();
+
+            if (!q) {
+                suggestions.classList.remove("show");
+                suggestions.innerHTML = "";
+                return;
+            }
+
+            try {
+                const response = await fetch("/suggest?q=" + encodeURIComponent(q));
+                const data = await response.json();
+                showSuggestions(data.games || []);
+            } catch (e) {
+                suggestions.classList.remove("show");
+                suggestions.innerHTML = "";
+            }
+        }
+
+        function selectSuggestion(index) {
+            const game = currentSuggestions[index];
+            if (!game) return;
+
+            searchInput.value = game.name;
+            suggestions.classList.remove("show");
+            suggestions.innerHTML = "";
+
+            gameGrid.innerHTML = makeCard(game);
+            statusText.textContent = `Showing 1 result for "${game.name}"`;
+        }
+
+        searchInput.addEventListener("input", () => {
+            clearTimeout(searchDebounce);
+            clearTimeout(suggestionDebounce);
+
+            suggestionDebounce = setTimeout(runSuggestions, 120);
+            searchDebounce = setTimeout(runSearch, 220);
+        });
+
+        searchInput.addEventListener("keydown", (e) => {
+            const count = currentSuggestions.length;
+            if (!count || !suggestions.classList.contains("show")) return;
+
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                activeSuggestionIndex = (activeSuggestionIndex + 1) % count;
+                highlightSuggestion();
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                activeSuggestionIndex = (activeSuggestionIndex - 1 + count) % count;
+                highlightSuggestion();
+            } else if (e.key === "Enter") {
+                if (activeSuggestionIndex >= 0) {
+                    e.preventDefault();
+                    selectSuggestion(activeSuggestionIndex);
+                }
+            } else if (e.key === "Escape") {
+                suggestions.classList.remove("show");
+            }
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!suggestions.contains(e.target) && e.target !== searchInput) {
+                suggestions.classList.remove("show");
+            }
+        });
+
+        async function copyId(appId) {
+            try {
+                await navigator.clipboard.writeText(String(appId));
+            } catch (err) {
+                const temp = document.createElement("input");
+                temp.value = String(appId);
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand("copy");
+                document.body.removeChild(temp);
+            }
+        }
+    </script>
+</body>
+</html>
