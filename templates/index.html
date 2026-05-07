@@ -445,7 +445,7 @@
                         <div class="bottom-row">
                             <div class="game-id">ID: ${escapeHtml(String(game.app_id))}</div>
                             <div class="button-group">
-                                <a class="btn download-btn" href="${escapeHtml(game.store_url)}" target="_blank" title="Open Steam Store">⬇</a>
+                                <a class="btn download-btn" href="/download?url=${encodeURIComponent(game.store_url)}" target="_blank" title="Download">⬇</a>
                                 <button class="btn copy-btn" onclick="copyId('${escapeHtml(String(game.app_id))}')" title="Copy App ID">📋</button>
                             </div>
                         </div>
