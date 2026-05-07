@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import os
 import time
 import uuid
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 from flask import send_file, abort
 
 app = Flask(__name__)
@@ -75,7 +75,7 @@ def download_zip():
     file_path = os.path.join(TEMP_DIR, filename)
 
     try:
-        proxy_url = f"https://walftech.com/proxy.php?url={file_url}"
+        proxy_url = "https://walftech.com/proxy.php?url=" + quote(file_url, safe="")
         with requests.get(proxy_url, headers=HEADERS, stream=True, timeout=60) as response:
             
             response.raise_for_status()
