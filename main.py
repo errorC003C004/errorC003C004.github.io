@@ -15,11 +15,15 @@ HEADERS = {
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/135.0.0.0 Safari/537.36"
     )
+    "Referer": "https://walftech.com/gamelist/index.html"
 }
+
+cookies = {"cf_clearance": "TBz8H5F7aZkebt0jj_wJkx6clzKrAW3oFTqJOrG0Z3E-1778112433-1.2.1.1-keoi1ajJHl_DetcqYNUA7I2kNHc0P6E1Mf_N5sB3qI.uMIYHHVY5rcZ6a.KYKZy5N9gl6GT0swZ3Gza4GfA3Zds.yBYDU_NnAZ3hFvjQhK3lZiFa8mcSju.kqQpUz0l8WyxRqiCcEFnrG.l3MRa.CTTVbw2rlKgTYvBgpI9wlly9BFhziPedGJDN8uD4HPDjJ8XyuBBi5YSWYSV6hy1wj24nDqrLJ43ocE6HQAR.j4SNEy2aFQlqykZs8oNzcVzT_agBY4.pMW_TOamwww2OQOih.bgQP6zWdjHqXWxJr_elddU486Jp7Bd13HjOD2XOS66sYx5k_P_qLFyRWRf_7Q"}
+
 
 
 def get_top_games(limit=100):
-    response = requests.get(TOP_URL, headers=HEADERS, timeout=30)
+    response = requests.get(TOP_URL, cookies=cookies, headers=HEADERS, stream=True, timeout=30)
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, "html.parser")
