@@ -10,12 +10,8 @@ STEAM_SUGGEST_URL = "https://store.steampowered.com/search/suggest/"
 APP_RE = re.compile(r"^/app/(\d+)$")
 
 HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/135.0.0.0 Safari/537.36"
-    )
-    "Referer": "https://walftech.com/gamelist/index.html"
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Referer': 'https://walftech.com/gamelist/index.html'
 }
 
 cookies = {"cf_clearance": "TBz8H5F7aZkebt0jj_wJkx6clzKrAW3oFTqJOrG0Z3E-1778112433-1.2.1.1-keoi1ajJHl_DetcqYNUA7I2kNHc0P6E1Mf_N5sB3qI.uMIYHHVY5rcZ6a.KYKZy5N9gl6GT0swZ3Gza4GfA3Zds.yBYDU_NnAZ3hFvjQhK3lZiFa8mcSju.kqQpUz0l8WyxRqiCcEFnrG.l3MRa.CTTVbw2rlKgTYvBgpI9wlly9BFhziPedGJDN8uD4HPDjJ8XyuBBi5YSWYSV6hy1wj24nDqrLJ43ocE6HQAR.j4SNEy2aFQlqykZs8oNzcVzT_agBY4.pMW_TOamwww2OQOih.bgQP6zWdjHqXWxJr_elddU486Jp7Bd13HjOD2XOS66sYx5k_P_qLFyRWRf_7Q"}
