@@ -15,14 +15,20 @@ STEAM_SUGGEST_URL = "https://store.steampowered.com/search/suggest/"
 APP_RE = re.compile(r"^/app/(\d+)$")
 
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Referer': 'https://walftech.com/gamelist/index.html'
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:151.0) Gecko/20100101 Firefox/151.0",
+    "Accept": "application/zip,application/octet-stream,*/*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Referer": "https://walftech.com/gamelist/index.html",
+    "Origin": "https://walftech.com",
+    "Connection": "keep-alive",
 }
 
 
-TEMP_DIR = "temp_downloads"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+TEMP_DIR = os.path.join(BASE_DIR, "temp_downloads")
 MAX_AGE = 30 * 60
-MAX_FILE_SIZE = 1024 * 1024 * 500  # 500 MB
+MAX_FILE_SIZE = 1024 * 1024 * 500
 
 os.makedirs(TEMP_DIR, exist_ok=True)
 
@@ -54,6 +60,7 @@ def is_allowed_url(url):
 
 @app.route("/download")
 def download_zip():
+    os.makedirs(TEMP_DIR, exist_ok=True)
     cleanup_old_files()
 
     file_url = request.args.get("url", "").strip()
@@ -68,9 +75,14 @@ def download_zip():
     file_path = os.path.join(TEMP_DIR, filename)
 
     try:
-        with requests.get(file_url, headers=HEADERS, stream=True, timeout=60) as response:
+        proxy_url = f"https://walftech.com/proxy.php?url={file_url}"
+        with requests.get(proxy_url, headers=HEADERS, stream=True, timeout=60) as response:
+            
             response.raise_for_status()
-
+            print("Downloading:", file_url)
+            print("Status:", response.status_code)
+            print("Content-Type:", response.headers.get("Content-Type"))
+            print("Final URL:", response.url)
             total = 0
 
             with open(file_path, "wb") as f:
@@ -87,12 +99,14 @@ def download_zip():
 
                     f.write(chunk)
 
-    except requests.RequestException:
+    except requests.RequestException as e:
         if os.path.exists(file_path):
             os.remove(file_path)
 
-        abort(400, "Failed to download file")
+        abort(400, f"Failed to download file: {e}")
 
+    if not os.path.exists(file_path):
+        abort(500, f"Downloaded file was not saved: {file_path}")
     return send_file(
         file_path,
         as_attachment=True,
