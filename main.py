@@ -2,6 +2,11 @@ import re
 from flask import Flask, render_template, request, jsonify
 import requests
 from bs4 import BeautifulSoup
+import os
+import time
+import uuid
+from urllib.parse import urlparse
+from flask import send_file, abort
 
 app = Flask(__name__)
 
@@ -14,12 +19,90 @@ HEADERS = {
     'Referer': 'https://walftech.com/gamelist/index.html'
 }
 
-cookies = {"cf_clearance": "TBz8H5F7aZkebt0jj_wJkx6clzKrAW3oFTqJOrG0Z3E-1778112433-1.2.1.1-keoi1ajJHl_DetcqYNUA7I2kNHc0P6E1Mf_N5sB3qI.uMIYHHVY5rcZ6a.KYKZy5N9gl6GT0swZ3Gza4GfA3Zds.yBYDU_NnAZ3hFvjQhK3lZiFa8mcSju.kqQpUz0l8WyxRqiCcEFnrG.l3MRa.CTTVbw2rlKgTYvBgpI9wlly9BFhziPedGJDN8uD4HPDjJ8XyuBBi5YSWYSV6hy1wj24nDqrLJ43ocE6HQAR.j4SNEy2aFQlqykZs8oNzcVzT_agBY4.pMW_TOamwww2OQOih.bgQP6zWdjHqXWxJr_elddU486Jp7Bd13HjOD2XOS66sYx5k_P_qLFyRWRf_7Q"}
 
+TEMP_DIR = "temp_downloads"
+MAX_AGE = 30 * 60
+MAX_FILE_SIZE = 1024 * 1024 * 500  # 500 MB
+
+os.makedirs(TEMP_DIR, exist_ok=True)
+
+download_hosts = {
+    "steamgames554.s3.us-east-1.amazonaws.com",
+}
+
+def cleanup_old_files():
+    now = time.time()
+
+    for name in os.listdir(TEMP_DIR):
+        path = os.path.join(TEMP_DIR, name)
+
+        if os.path.isfile(path) and now - os.path.getmtime(path) > MAX_AGE:
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+
+
+def is_allowed_url(url):
+    parsed = urlparse(url)
+
+    return (
+        parsed.scheme in ("http", "https")
+        and parsed.netloc in download_hosts
+        and parsed.path.endswith(".zip")
+    )
+
+@app.route("/download")
+def download_zip():
+    cleanup_old_files()
+
+    file_url = request.args.get("url", "").strip()
+
+    if not file_url:
+        abort(400, "Missing download URL")
+
+    if not is_allowed_url(file_url):
+        abort(403, "Download URL is not allowed")
+
+    filename = f"{uuid.uuid4()}.zip"
+    file_path = os.path.join(TEMP_DIR, filename)
+
+    try:
+        with requests.get(file_url, headers=HEADERS, stream=True, timeout=60) as response:
+            response.raise_for_status()
+
+            total = 0
+
+            with open(file_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=1024 * 1024):
+                    if not chunk:
+                        continue
+
+                    total += len(chunk)
+
+                    if total > MAX_FILE_SIZE:
+                        f.close()
+                        os.remove(file_path)
+                        abort(413, "File is too large")
+
+                    f.write(chunk)
+
+    except requests.RequestException:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        abort(400, "Failed to download file")
+
+    return send_file(
+        file_path,
+        as_attachment=True,
+        download_name=os.path.basename(urlparse(file_url).path) or "download.zip",
+        mimetype="application/zip"
+    )
 
 
 def get_top_games(limit=100):
-    response = requests.get(TOP_URL, cookies=cookies, headers=HEADERS, stream=True, timeout=30)
+    response = requests.get(TOP_URL, headers=HEADERS, stream=True, timeout=30)
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, "html.parser")
